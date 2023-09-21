@@ -118,18 +118,16 @@ plot(forecast_values, main = "ARIMA Forecast", xlab = "Date", ylab = "IPG3113N")
 
 
 # ============================= Model Evaluation ===============================
-forecasted_values <- forecast_values$mean[time(ts_data)]
 
-mae <- mean(abs(forecast_values$mean - ts_data))
-mse <- mean((forecast_values$mean - ts_data)^2)
-rmse <- sqrt(mse)
+# helps to find the most suitable ARIMA model for the data
+library(forecast)
+fit <- auto.arima(candy_data$IPG3113N)
+auto.arima(candy_data$IPG3113N, ic="aic", trace=TRUE)
 
-# Print evaluation metrics
-cat("Mean Absolute Error (MAE):", mae, "\n")
-cat("Mean Squared Error (MSE):", mse, "\n")
-cat("Root Mean Squared Error (RMSE):", rmse, "\n")
-
-
+# find the MAE, MASE, RMSE, ME, ...
+accuracy(fit)
+# or 
+summary(fit)
 
 
 
