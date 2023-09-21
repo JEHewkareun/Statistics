@@ -54,4 +54,84 @@ ts_data <- ts(candy_data$IPG3113N, frequency = 12)  # Assuming monthly data (fre
 decomposition <- decompose(ts_data)
 plot(decomposition) # Plot the decomposition components (trend, seasonal, and remainder)
 
+# ============================= Data Visualization ================================
+
+# Visual Inspection of Trend Component
+plot(decomposition$trend, main = "Trend Component", xlab = "Date", ylab = "Trend")
+
+# Visual Inspection of Seasonal Component
+plot(decomposition$seasonal, main = "Seasonal Component", xlab = "Date", ylab = "Seasonal")
+
+# Visual Inspection of Residual Component
+plot(decomposition$random, main = "Residual Component", xlab = "Date", ylab = "Residual")
+
+# helps to find the most suitable ARIMA model for the data
+library(forecast)
+fit <- auto.arima(candy_data$IPG3113N)
+summary(fit)
+auto.arima(candy_data$IPG3113N, ic="aic", trace=TRUE)
+
+# ============================ Analysis for seasonal ===========================
+summary(decomposition$seasonal)
+
+# Plot the autocorrelation function (ACF) of the seasonal component
+acf(decomposition$seasonal, main = "ACF of Seasonal Component")
+
+# Plot the partial autocorrelation function (PACF) of the seasonal component
+pacf(decomposition$seasonal, main = "PACF of Seasonal Component")
+
+# ============================ Analysis for trend ==============================
+summary(decomposition$trend)
+
+# check got missing value or not
+any(is.na(decomposition$trend))
+# remove missing value
+decomposition$trend <- na.omit(decomposition$trend)
+
+# Plot the autocorrelation function- ACF & PACF of the trend component
+acf(decomposition$trend, main = "ACF of Trend Component")
+pacf(decomposition$trend, main = "PACF of Trend Component")
+
+# =========================== Analysis for Residual ============================
+summary(decomposition$random)
+
+any(is.na(decomposition$random))
+decomposition$random <- na.omit(decomposition$random)
+
+# Plot the autocorrelation function (ACF) of the residual component
+acf(decomposition$random, main = "ACF of Residual Component")
+
+# Plot the partial autocorrelation function (PACF) of the residual component
+pacf(decomposition$random, main = "PACF of Residual Component")
+
+
+# =========================== Fit ARIMA model ============================
+arima_model <- auto.arima(ts_data)
+summary(arima_model)
+
+# Generate forecasts for the next 24 months
+forecast_values <- forecast(arima_model, h = 24)
+print(forecast_values)
+
+# plot the graph out
+plot(forecast_values, main = "ARIMA Forecast", xlab = "Date", ylab = "IPG3113N")
+
+
+# ============================= Model Evaluation ===============================
+forecasted_values <- forecast_values$mean[time(ts_data)]
+
+mae <- mean(abs(forecast_values$mean - ts_data))
+mse <- mean((forecast_values$mean - ts_data)^2)
+rmse <- sqrt(mse)
+
+# Print evaluation metrics
+cat("Mean Absolute Error (MAE):", mae, "\n")
+cat("Mean Squared Error (MSE):", mse, "\n")
+cat("Root Mean Squared Error (RMSE):", rmse, "\n")
+
+
+
+
+
+
 
