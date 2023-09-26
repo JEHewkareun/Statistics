@@ -7,16 +7,14 @@ library(tseries)
 library(e1071)
 library(MASS)
 
-# ----------------------------- Understanding Data -----------------------------
+# ------------------------- Step 0: Import and Split Data ----------------------
+candy_data <- read.csv("candy_production.csv")
 
 ls() # Check my data frame name
 
 str(candy_data) # Check the structure
 
 any(is.na(candy_data)) # Check for missing values
-
-# ------------------------- Step 0: Import and Split Data ----------------------
-candy_data <- read.csv("candy_production.csv")
 
 # Convert the date column to the correct format
 candy_data$observation_date <- as.Date(candy_data$observation_date, format = "%m/%d/%Y")
@@ -75,50 +73,45 @@ print(skew)
 # Q-Q plot closely follow the line of equality--> suggests that the dataset is approximately normally distributed
 qqnorm(candy_data$IPG3113N)
 qqline(candy_data$IPG3113N)
- 
+
 # Shapiro-Wilk test --> whether a dataset follows a normal distribution
 shapiro.test(candy_data$IPG3113N)
 # Output: W-statistic is close to 1, which suggests that the data is relatively close to a normal distribution.
 # p-value (p < 0.0001) --> does not follow a normal distribution --> need to do transformation
 
+
 # DO THE TRANSFORMATION 
-# Apply the Box-Cox transformation
-transformed_data <- candy_data
-transformed_data$IPG3113N <- boxcox(candy_data$IPG3113N)$observation_date
+original_data <- candy_data$IPG3113N
 
-# Check skewness after transformation
-skew_after <- skewness(transformed_data$IPG3113N)
-cat("Skewness after transformation:", skew_after, "\n")
+# Find the optimal lambda (λ) for Box-Cox transformation
+optimal_lambda <- optimize(function(lambda) -sum(log(abs((original_data^lambda - 1) / lambda))), c(-2, 2))$minimum
+cat("Optimal lambda (λ) =", optimal_lambda, "\n")
+# Output: Optimal lambda (λ) = 1.99994 
 
-# Plot histograms before and after transformation to check normality
-par(mfrow = c(1, 2))
-hist(candy_data$IPG3113N, main = "Before Transformation", xlab = "Values")
-hist(transformed_data$IPG3113N, main = "After Transformation", xlab = "Values")
+# Transform the data using the optimal lambda
+transformed_data <- if (abs(optimal_lambda) > 0.001) {
+  (original_data^optimal_lambda - 1) / optimal_lambda
+} else {
+  log(original_data)
+}
 
-# ------------------------- Step 3(a) : Differencing -------------------------
-## calculate the first difference and second difference of dataset the plot the first difference
-candy_data <- ts(candy_data)
-plot(candy_data, xlab="Date", ylab="IPG3113N", main="Candy Production from 1973 to 2017")
+# Assign the transformed data back to the dataset
+candy_data$Transformed_IPG3113N <- transformed_data
 
-candy_data <- ts(diff(candy_data))
-plot(candy_data, xlab="Date", ylab="candy_data(t)-candy_data(t-1)", main="First
-Difference")
+# Plot the original and transformed data
+par(mfrow = c(1, 2))  # Create a 1x2 grid for side-by-side plots
+hist(original_data, main = "Original Data", xlab = "Value", col = "violet")
+hist(transformed_data, main = "Transformed Data", xlab = "Transformed Value", col = "pink")
+par(mfrow = c(1, 1))  # Reset plotting parameters
 
-ndiffs(candy_data)
-nsdiffs(candy_data)
+print(candy_data)
 
-## Correlogram
-### Plot the correlogram for lag 0 to lag12
-ACF <- acf(candy_data, main="Correlogram for Candy Production")
-ACF$acf
-
-# ------------------------- Step 3 (b) : Check the stationary of series -------------------------
+# ------------------------- Step 3: Check the stationary of series -------------------------
 # Examine autocorrelation and partial autocorrelation to identify potential lag values for modeling
-acf(candy_data$IPG3113N, main = "Autocorrelation Function (ACF)")
-pacf(candy_data$IPG3113N, main = "Partial Autocorrelation Function (PACF)")
+acf(candy_data$Transformed_IPG3113N, main = "Autocorrelation Function (ACF)")
+pacf(candy_data$Transformed_IPG3113N, main = "Partial Autocorrelation Function (PACF)")
 
 # Statistical Tests using adf --> result < 0.05 means likely stationary
-library(tseries)
 adf.test(candy_data$IPG3113N)
 
 # examine relationships between values at different time points
