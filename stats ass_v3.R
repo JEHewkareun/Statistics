@@ -104,6 +104,29 @@ hist(original_data, main = "Original Data", xlab = "Value", col = "violet")
 hist(transformed_data, main = "Transformed Data", xlab = "Transformed Value", col = "pink")
 par(mfrow = c(1, 1))  # Reset plotting parameters
 
+#check again whether ori data or transformed data better
+# Perform Augmented Dickey-Fuller (ADF) test on the original data
+adf_original <- adf.test(original_data)
+cat("Augmented Dickey-Fuller (ADF) Test on Original Data:\n")
+cat("ADF Statistic:", adf_original$statistic, "\n")
+cat("P-value:", adf_original$p.value, "\n")
+cat("Critical Values:", adf_original$critical, "\n")
+
+# Perform Augmented Dickey-Fuller (ADF) test on the transformed data
+adf_transformed <- adf.test(transformed_data)
+cat("\nAugmented Dickey-Fuller (ADF) Test on Transformed Data:\n")
+cat("ADF Statistic:", adf_transformed$statistic, "\n")
+cat("P-value:", adf_transformed$p.value, "\n")
+cat("Critical Values:", adf_transformed$critical, "\n")
+
+# Result: 
+# For the Original Data:
+# ADF Statistic: -3.851111
+# P-value: 0.01644398
+# For the Transformed Data:
+# ADF Statistic: -3.986767
+# P-value: 0.01             --> better 
+
 print(candy_data)
 
 # ------------------------- Step 3: Check the stationary of series -------------------------
@@ -111,13 +134,14 @@ print(candy_data)
 acf(candy_data$Transformed_IPG3113N, main = "Autocorrelation Function (ACF)")
 pacf(candy_data$Transformed_IPG3113N, main = "Partial Autocorrelation Function (PACF)")
 
-# Statistical Tests using adf --> result < 0.05 means likely stationary
-adf.test(candy_data$IPG3113N)
+# Statistical Tests using adf --> result < 0.05 means stationary
+adf.test(candy_data$Transformed_IPG3113N)
 
 # examine relationships between values at different time points
-lag.plot(candy_data$IPG3113N, main = "Lag Plot")
+lag.plot(candy_data$IPG3113N, main = "Lag Plot") # using the original data
+lag.plot(candy_data$Transformed_IPG3113N, main = "Lag Plot") # using the transformed 
 
-# Analysis for seasonal
+# Analysis for seasonal - - - - - - - - - - - - - - - - - - - - - - - - - 
 summary(decomposition$seasonal)
 
 # Plot the autocorrelation function (ACF) of the seasonal component
@@ -126,7 +150,7 @@ acf(decomposition$seasonal, main = "ACF of Seasonal Component")
 # Plot the partial autocorrelation function (PACF) of the seasonal component
 pacf(decomposition$seasonal, main = "PACF of Seasonal Component")
 
-# Analysis for trend 
+# Analysis for trend - - - - - - - - - - - - -  - - - - - - - - - - - - 
 summary(decomposition$trend)
 
 # check got missing value or not
@@ -138,7 +162,7 @@ decomposition$trend <- na.omit(decomposition$trend)
 acf(decomposition$trend, main = "ACF of Trend Component")
 pacf(decomposition$trend, main = "PACF of Trend Component")
 
-# Analysis for Residual 
+# Analysis for Residual - - - - - - - - - - - - -  - - - - - - - - - - - -
 summary(decomposition$random)
 
 any(is.na(decomposition$random))
@@ -151,7 +175,7 @@ acf(decomposition$random, main = "ACF of Residual Component")
 pacf(decomposition$random, main = "PACF of Residual Component")
 
 # ------------------------- Step 4 : Find Optimal Parameters -------------------------
-### Additive Holt-winters Method
+### Additive Holt-winters Method 
 Yt <- ts(candy_data, frequency=4) #function “ts” is used to create time series object
 Yt
 
@@ -190,7 +214,7 @@ pacf(yt, main='Partial Autocorrelations')
 ##### (p,d,q) --> non seasonal part of model
 ##### (P,D,Q) --> seasonal part of model
 
-# Fit ARIMA Model
+# Fit ARIMA Model - - - - - - - - - - - - -  - - - - - - - - - - - -
 arima_model <- auto.arima(ts_data)
 summary(arima_model)
 
