@@ -141,6 +141,11 @@ adf.test(candy_data$Transformed_IPG3113N)
 lag.plot(candy_data$IPG3113N, main = "Lag Plot") # using the original data
 lag.plot(candy_data$Transformed_IPG3113N, main = "Lag Plot") # using the transformed 
 
+#Decompose again 
+ts_data <- ts(candy_data$Transformed_IPG3113N, frequency = 12)  # Assuming monthly data (frequency = 12)
+decomposition <- decompose(ts_data)
+plot(decomposition) 
+
 # Analysis for seasonal - - - - - - - - - - - - - - - - - - - - - - - - - 
 summary(decomposition$seasonal)
 
@@ -173,6 +178,12 @@ acf(decomposition$random, main = "ACF of Residual Component")
 
 # Plot the partial autocorrelation function (PACF) of the residual component
 pacf(decomposition$random, main = "PACF of Residual Component")
+
+print(decomposition)
+
+acf(candy_data$Transformed_IPG3113N, main = "Autocorrelation Function (ACF)")
+pacf(candy_data$Transformed_IPG3113N, main = "Autocorrelation Function (ACF)")
+
 
 # ------------------------- Step 4 : Find Optimal Parameters -------------------------
 ### Additive Holt-winters Method 
