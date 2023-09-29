@@ -65,7 +65,7 @@ plot(decomposition$random, main = "Residual Component", xlab = "Date", ylab = "R
 
 ## Decision: No need after looking at the transformed data time series plot
 
-# ------------------------- Step 3: Check the stationary of series -------------------------
+# ------------------------- Step 3a: Check the stationary of series -------------------------
 adf.test(data$people_employed)
 
 checktest <- kpss.test(train, null=c("Level","Trend"))
@@ -101,7 +101,7 @@ pacf(decomposition$random, main = "PACF of Residual Component")
 
 print(decomposition)
 
-# ------------------------- Step 4 : Find Optimal Parameters -------------------------
+# ---------------------------- Step 3b: Differencing ---------------------------
 ## Check the Seasonal then do the First(Seasonal) Differencing
 plot(train)
 acf(train, lag.max = 40)
@@ -132,6 +132,9 @@ adf.test(z2)
 
 
 checkresiduals(z, lag=24)
+
+
+# ------------------------- Step 4 : Find Optimal Parameters -------------------------
 
 
 ##Guess Arima(p,d,q)(P,D,Q)
