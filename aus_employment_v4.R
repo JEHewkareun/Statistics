@@ -136,7 +136,6 @@ checkresiduals(z, lag=24)
 
 # ------------------------- Step 4 : Find Optimal Parameters -------------------------
 
-
 ##Guess Arima(p,d,q)(P,D,Q)
 ##### (p,d,q) --> non seasonal part of model ; d = 0
 ##### (P,D,Q) --> seasonal part of model ; D = 1
