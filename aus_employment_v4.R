@@ -24,33 +24,30 @@ library(caTools)
 ## import the data set
 data <- read.csv("aus_employment.csv",stringsAsFactors = FALSE)
 
-### Data Understanding ###
+## Data Understanding
 ls() # Check my data frame name
-
 str(data) # Check the structure
-
 any(is.na(data)) # Check for missing values
 
 ## format the date
-data$date <- as.Date(data$date, format = "%m/%d/%Y")
+data$date <- as.Date(data$date, format = "%Y-%m-%d")
 
-# Create a time series object
+## Create a time series object
 data_ts <- ts(data$people_employed, frequency = 12, start = c(1978, 1))
 
 ## look the first few rows
 head(data_ts)
 
 ## Plot Time Series
-plot(data_ts, main="Time Series Plot of X.Passengers",xlab="Year", ylab = "X.Passengers")
+plot(data_ts, main="Time Series Plot of People Employed",xlab="Year", ylab = "People Employed")
 
-## Split the data into training and test sets
-##### Use the train to do the model then the end use to compare
+## Split the data into training and testing sets
 train <- window(data_ts, start = c(1978, 1), end = c(1988, 12)) # 80% for training
 test <- window(data_ts, start = c(1989, 1), end = c(1991, 3)) # 20% for testing
 
 # ------------------------- Step 1 : Visualize the Time Series -------------------------
 ## Perform seasonal decomposition
-ts_data <- ts(data$people_employed, frequency = 12)  # Assuming monthly data (frequency = 12)
+ts_data <- ts(data$people_employed, frequency = 12) # monthly data, 12 months a year
 decomposition <- decompose(ts_data)
 plot(decomposition) # Plot the decomposition components (trend, seasonal, and remainder)
 
@@ -66,76 +63,43 @@ plot(decomposition$random, main = "Residual Component", xlab = "Date", ylab = "R
 
 # ------------------------- Step 2 : Transformations ---------------------------
 
-## CHECK NEED TO DO TRANFORMATION OR NOT  
-## check skewness first
-skew <- skewness(data$people_employed)
-print(skew)
-
-## Q-Q plot closely follow the line of equality--> suggests that the dataset is approximately normally distributed
-qqnorm(data$people_employed)
-qqline(data$people_employed)
-
-## Shapiro-Wilk test --> whether a dataset follows a normal distribution
-shapiro.test(data$people_employed)
-
-##### Output: W-statistic is close to 1, which suggests that the data is relatively close to a normal distribution.
-##### p-value (p < 0.0001) --> does not follow a normal distribution --> need to do transformation
+## Decision: No need after looking at the transformed data time series plot
 
 # ------------------------- Step 3: Check the stationary of series -------------------------
-## Examine autocorrelation and partial autocorrelation to identify potential lag values for modeling
+adf.test(data$people_employed)
+
+checktest <- kpss.test(train, null=c("Level","Trend"))
+checktest	
+
 acf(data$people_employed, main = "Autocorrelation Function (ACF)", lag.max = 40)
 pacf(data$people_employed, main = "Partial Autocorrelation Function (PACF)", lag.max = 40)
 
-## Statistical Tests using adf --> result < 0.05 means stationary
-adf.test(data$people_employed)
-
-## examine relationships between values at different time points
-lag.plot(data$people_employed, main = "Lag Plot") # using the original data
-
-## Decompose again 
-ts_data2 <- ts(data$people_employed, frequency = 12)  # Assuming monthly data (frequency = 12)
-decomposition2 <- decompose(ts_data2)
-plot(decomposition2) 
-
-checktest <- kpss.test(train, null=c("Level","Trend"))
-checktest	 
-
 # Analysis for seasonal - - - - - - - - - - - - - - - - - - - - - - - - - 
-summary(decomposition2$seasonal)
+summary(decomposition$seasonal)
 
-## Plot the autocorrelation function (ACF) of the seasonal component
-acf(decomposition2$seasonal, main = "ACF of Seasonal Component")
-
-## Plot the partial autocorrelation function (PACF) of the seasonal component
-pacf(decomposition2$seasonal, main = "PACF of Seasonal Component")
+acf(decomposition$seasonal, main = "ACF of Seasonal Component")
+pacf(decomposition$seasonal, main = "PACF of Seasonal Component")
 
 # Analysis for trend - - - - - - - - - - - - -  - - - - - - - - - - - - 
-summary(decomposition2$trend)
+summary(decomposition$trend)
 
 ## check got missing value or not
-any(is.na(decomposition2$trend))
+any(is.na(decomposition$trend))
+decomposition$trend <- na.omit(decomposition$trend)## remove missing value
 
-## remove missing value
-decomposition2$trend <- na.omit(decomposition2$trend)
-
-## Plot the autocorrelation function- ACF & PACF of the trend component
-acf(decomposition2$trend, main = "ACF of Trend Component")
-pacf(decomposition2$trend, main = "PACF of Trend Component")
+acf(decomposition$trend, main = "ACF of Trend Component")
+pacf(decomposition$trend, main = "PACF of Trend Component")
 
 # Analysis for Residual - - - - - - - - - - - - -  - - - - - - - - - - - -
-summary(decomposition2$random)
+summary(decomposition$random)
 
-any(is.na(decomposition2$random))
-decomposition2$random <- na.omit(decomposition2$random)
+any(is.na(decomposition$random))
+decomposition$random <- na.omit(decomposition$random)
 
-## Plot the autocorrelation function- ACF & PACF of the residual component
-acf(decomposition2$random, main = "ACF of Residual Component")
-pacf(decomposition2$random, main = "PACF of Residual Component")
+acf(decomposition$random, main = "ACF of Residual Component")
+pacf(decomposition$random, main = "PACF of Residual Component")
 
-print(decomposition2)
-
-acf(data$people_employed, main = "Autocorrelation Function (ACF)")
-pacf(data$people_employed, main = "Autocorrelation Function (PACF)")
+print(decomposition)
 
 # ------------------------- Step 4 : Find Optimal Parameters -------------------------
 ## Check the Seasonal then do the First(Seasonal) Differencing
