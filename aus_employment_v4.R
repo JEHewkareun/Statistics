@@ -141,8 +141,8 @@ checkresiduals(z, lag=24)
 ##### (P,D,Q) --> seasonal part of model ; D = 1
 ##### p is for AR model --> see PACF; q is for MA model --> see ACF
 # lets see the PACF 
-# arima(1,0,0)(1, 0, 0)[12]
-fit <- arima(x=train, order=c(1,1,0), seasonal = list(order = c(0,1,0), period=12))
+# arima(1,1,0)(2,1,0)[12]
+fit <- arima(x=train, order=c(1,1,0), seasonal = list(order = c(2,1,0), period=12))
 fit
 summary(fit)
 
