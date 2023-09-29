@@ -71,9 +71,6 @@ plot(decomposition$random, main = "Residual Component", xlab = "Date", ylab = "R
 skew <- skewness(data$people_employed)
 print(skew)
 
-##### Output:  -0.149 indicates that the data is slightly left-skewed. 
-##### (-0.149) suggests that the skewness is relatively small, which means the departure from a perfectly symmetric distribution is not severe
-
 ## Q-Q plot closely follow the line of equality--> suggests that the dataset is approximately normally distributed
 qqnorm(data$people_employed)
 qqline(data$people_employed)
@@ -83,41 +80,6 @@ shapiro.test(data$people_employed)
 
 ##### Output: W-statistic is close to 1, which suggests that the data is relatively close to a normal distribution.
 ##### p-value (p < 0.0001) --> does not follow a normal distribution --> need to do transformation
-
-## DO THE TRANSFORMATION 
-original_data <- data$people_employed
-
-## Find the optimal lambda (λ) for Box-Cox transformation
-optimal_lambda <- optimize(function(lambda) -sum(log(abs((original_data^lambda - 1) / lambda))), c(-2, 2))$minimum
-cat("Optimal lambda (λ) =", optimal_lambda, "\n")
-
-##### Output: Optimal lambda (λ) = 1.99994 
-
-## Transform the data using the optimal lambda
-transformed_data <- if (abs(optimal_lambda) > 0.001) {
-  (original_data^optimal_lambda - 1) / optimal_lambda
-} else {
-  log(original_data)
-}
-
-## Assign the transformed data back to the dataset
-data$people_employed <- transformed_data
-
-## Plot the original and transformed data
-par(mfrow = c(1, 2))  # Create a 1x2 grid for side-by-side plots
-hist(original_data, main = "Original Data", xlab = "Value", col = "violet")
-hist(transformed_data, main = "Transformed Data", xlab = "Transformed Value", col = "pink")
-par(mfrow = c(1, 1))  # Reset plotting parameters
-
-ggplot(data = NULL, aes(x = time(data_ts), y = data_ts)) +
-  geom_line() +
-  labs(x = "Date", y = "X.Passengers") +
-  ggtitle("Time Series Plot of X.Passengers")
-
-ggplot(data = NULL, aes(x = time(transformed_data), y = data_ts)) +
-  geom_line() +
-  labs(x = "Date", y = "X.Passengers") +
-  ggtitle("Time Series Plot of X.Passengers")
 
 # ------------------------- Step 3: Check the stationary of series -------------------------
 ## Examine autocorrelation and partial autocorrelation to identify potential lag values for modeling
