@@ -150,8 +150,7 @@ summary(fit)
 ## Check Residuals
 checkresiduals(fit, lag = 24)
 
-## Identification revisited
-# auto arima --> ARIMA(1,1,2)(0,1,1)[12]
+# Auto arima --> ARIMA(1,1,2)(0,1,1)[12]
 fit2<- auto.arima(train, ic="aic", trace = TRUE)
 summary(fit2)
 auto.arima(train,stepwise = F,trace = T, ic=c(("aic")))
@@ -160,11 +159,10 @@ checkresiduals(fit2, lag=24)
 accuracy(fit)
 accuracy(fit2)		 
 
-
 coeftest(fit2)
 
-## Generate forecasts for the next 108 months
-forecast_values <- forecast(fit2, h = 84)
+## Generate forecasts for the next 36 months
+forecast_values <- forecast(fit2, h = 36)
 print(forecast_values)
 
 
