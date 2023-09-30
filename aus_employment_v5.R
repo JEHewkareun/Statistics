@@ -331,8 +331,14 @@ coeftest(multiplicative_model)
 coeftest(fit4)                    # ETS (best model)
 
 # ------------------------- Step 9 : Forecasting -------------------------
-## Generate forecasts for the next 36 months
-forecast_values <- forecast(fit2, h = 36)
+## Generate forecasts for the next 36 months for the best model ets
+forecast_values <- forecast(fit4, h = 36)
 print(forecast_values)
 
 # ------------------------- Step 10 : Evaluate Model -------------------------
+
+# Evaluate the ETS model using accuracy measures
+accuracy_metrics <- accuracy(forecast_values, test)
+
+# Print the accuracy metrics
+print(accuracy_metrics)
