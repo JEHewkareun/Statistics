@@ -332,7 +332,7 @@ coeftest(fit4)                    # ETS (best model)
 
 # ------------------------- Step 9 : Forecasting -------------------------
 ## Generate forecasts for the next 36 months for the best model ets
-forecast_values <- forecast(fit4, h = 36)
+plot(forecast_values <- forecast(fit4, h = 36))
 print(forecast_values)
 
 # ------------------------- Step 10 : Evaluate Model -------------------------
