@@ -43,8 +43,8 @@ head(data_ts)
 plot(data_ts, main="Time Series Plot of People Employed",xlab="Year", ylab = "People Employed")
 
 ## Split the data into training and testing sets
-train <- window(data_ts, start = c(1978, 1), end = c(1988, 12)) # 80% for training
-test <- window(data_ts, start = c(1989, 1), end = c(1991, 3)) # 20% for testing
+train <- window(data_ts, start = c(1978, 1), end = c(1988, 8)) # 80% for training
+test <- window(data_ts, start = c(1988, 9), end = c(1991, 3)) # 20% for testing
 
 # ------------------------- Step 1 : Visualize the Time Series -------------------------
 ## Perform seasonal decomposition
@@ -370,7 +370,7 @@ print(rmse_comparison)
 
 # Plot all forecasts and test data on the same graph
 # Convert x_test to a time series object
-x_test_ts <- ts(test, frequency = 12,  start = c(1989, 1))
+x_test_ts <- ts(test, frequency = 12,  start = c(1988, 9))
 plot(x_test_ts)
 
 # Plot all forecasts and test data on the same graph
@@ -423,7 +423,7 @@ dev.off()  # Close the PDF device
 coeftest(arima_model)
 coeftest(autoarima_model)
 coeftest(fitSarima)
-coeftest(ets_model)                    # ETS (best model)
+ets_model                    # ETS (best model)
 additive_model 
 multiplicative_model
 
@@ -440,4 +440,3 @@ accuracy_metrics <- accuracy(forecast_values, test)
 
 # Print the accuracy metrics
 print(accuracy_metrics)
-
