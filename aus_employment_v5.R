@@ -119,7 +119,6 @@ z <- ts(diff(data_ts, lag=12))
 ts.plot(z, gpars = list(main="First(seasonal) Differences"))
 acf(z, main="z", lag.max = 40)
 pacf(z, main="z", lag.max = 40)
-
 ndiffs(z)
 adf.test(z)
 
@@ -131,30 +130,10 @@ pacf(z2, main="z2", lag.max = 40)
 ndiffs(z2)
 adf.test(z2)
 
-
 checkresiduals(z, lag=24)
 
 
 # ---------------------- Step 4 : Find Optimal Parameters ----------------------
-
-## Arima(p,d,q)(P,D,Q) ---------------------------------------------------------
-##### (p,d,q) --> non seasonal part of model ; d = 0
-##### (P,D,Q) --> seasonal part of model ; D = 1
-##### p is for AR model --> see PACF; q is for MA model --> see ACF
-# lets see the PACF 
-# arima(1,1,0)(2,1,0)[12]
-arima_model <- arima(x=train, order=c(1,1,0), seasonal = list(order = c(2,1,0), period=12))
-arima_model
-summary(arima_model)
-accuracy(arima_model)
-checkresiduals(arima_model)
-
-# Generate forecasts for the next 2.5 years (31 months)
-forecast_ARIMA <- forecast(arima_model, h = 31)
-
-# Plot the graph for the forecasts
-plot(forecast_ARIMA, main = "ARIMA Forecast", xlab = "Date", ylab = "People Employed")
-print(forecast_ARIMA)
 
 ## Auto arima --> ARIMA(1,1,2)(0,1,1)[12] ) -------------------------------------
 autoarima_model<- auto.arima(train, ic="aic", trace = TRUE)
@@ -169,29 +148,24 @@ forecast_AutoArima <- forecast(autoarima_model, h = 31)
 plot(forecast_AutoArima, main = "Auto ARIMA Forecast", xlab = "Date", ylab = "People Employed")
 print(forecast_AutoArima)
 
-## SARIMA model ----------------------------------------------------------------
-fitSarima <- arima(train,order=c(1,1,2),seasonal = list(order=c(0,1,1),period=12))
+## Sarima(p,d,q)(P,D,Q) ---------------------------------------------------------
+##### (p,d,q) --> non seasonal part of model ; d = 0
+##### (P,D,Q) --> seasonal part of model ; D = 1
+##### p is for AR model --> see PACF; q is for MA model --> see ACF
+# lets see the PACF 
+# arima(1,1,0)(2,1,0)[12]
+sarima_model <- arima(x=train, order=c(1,1,0), seasonal = list(order = c(2,1,0), period=12))
+sarima_model
+summary(sarima_model)
+accuracy(sarima_model)
+checkresiduals(sarima_model)
 
-## Check Residuals for SARIMA model
-tsdisplay(residuals(fitSarima),lag.max = 24, main = "Residual For SARIMA ")
-
-# Shapiro test看残差是否是常态
-shapiro.test(fitSarima$residuals)
-
-# Box test 看残差之间是否是独立的
-Box.test(fitSarima$residuals, lag=10,type ="Ljung-Box")
-checkresiduals(fitSarima, lag = 24)
-
-# check 
-summary(fitSarima)
-
-forecast_Sarima <- forecast(fitSarima, h = 31)
+# Generate forecasts for the next 2.5 years (31 months)
+forecast_SARIMA <- forecast(sarima_model, h = 31)
 
 # Plot the graph for the forecasts
-pdf("sarima_forecast_plot.pdf", width = 10, height = 6)  # Save the plot to a PDF file
-plot(forecast_Sarima, main = "SARIMA Forecast", xlab = "Date", ylab = "People Employed")
-dev.off()  # Close the PDF device
-print(forecast_Sarima)
+plot(forecast_SARIMA, main = "ARIMA Forecast", xlab = "Date", ylab = "People Employed")
+print(forecast_SARIMA)
 
 ## Holt Winter Model  ----------------------------------------------------------
 # Define a grid of values for alpha, beta, and gamma to search
@@ -281,23 +255,19 @@ plot(forecast_ETS)
 residuals <- checkresiduals(additive_model)
 residuals2 <- checkresiduals(multiplicative_model)
 residuals3 <- checkresiduals(ets_model)          #ETS 
-residuals4 <- checkresiduals(arima_model, lag = 24) #ARIMA
+residuals4 <- checkresiduals(sarima_model, lag = 24) #SARIMA
 residuals5 <- checkresiduals(autoarima_model, lag=24)  #auto ARIMA
-residuals6 <- checkresiduals(fitSarima, lag=24) #sarima 
 
 # ------- Step 6 : Consider Alternative Model, Compare and Determine the Best Model  ------------
 ## Compare accuracy of all models
-print("Accuracy of Arima Model")
-print(accuracy(forecast_ARIMA, test))
+print("Accuracy of Sarima Model")
+print(accuracy(forecast_SARIMA, test))
 
 print("Accuracy of Auto Arima Model")
 print(accuracy(forecast_AutoArima, test))
 
 print("Accuracy of ETS Model")
 print(accuracy(forecast_ETS, test))
-
-print("Accuracy of Sarima Model")
-print(accuracy(forecast_Sarima, test))
 
 print("Accuracy of Additive Model")
 print(accuracy(additive_forecast, test))
@@ -307,19 +277,17 @@ print(accuracy(multiplicative_forecast, test))
 
 ## Compute SE
 # Extract the residuals (forecast errors) from the forecast object
-arima_se <- sd(test - forecast_ARIMA$mean)
+arima_se <- sd(test - forecast_SARIMA$mean)
 autoarima_se <- sd(test - forecast_AutoArima$mean)
 ets_se <- sd(test - forecast_ETS$mean)
-sarima_se <- sd(test - forecast_Sarima$mean)
 additive_se <- sd(test - additive_forecast$mean)
 multiplicative_se <- sd(test - multiplicative_forecast$mean)
 
 ## Compute MSE
 # Calculate MSE as the mean squared error
-arima_mse <- mean(arima_se^2)
+sarima_mse <- mean(sarima_se^2)
 autoarima_mse <- mean(autoarima_se^2)
 ets_mse <- mean(ets_se^2)
-sarima_mse <- mean(sarima_se^2)
 additive_mse <- mean(additive_se^2)
 multiplicative_mse <- mean(multiplicative_se^2)
 
@@ -327,17 +295,16 @@ multiplicative_mse <- mean(multiplicative_se^2)
 ## Compare RMSE
 ### The lower the RMSE, the best performance of the model based on the accuracy
 # Square root of the Mean Squared Error (MSE) to obtain RMSE
-arima_rmse <- sqrt(arima_mse)
+sarima_rmse <- sqrt(sarima_mse)
 autoarima_rmse <- sqrt(autoarima_mse)
 ets_rmse <- sqrt(ets_mse)
-sarima_rmse <- sqrt(sarima_mse)
 additive_rmse <- sqrt(additive_mse)
 multiplicative_rmse <- sqrt(multiplicative_mse)
 
 # Create a data frame to display RMSE values for each model
 rmse_comparison <- data.frame(
-  Model = c("Addditve Holt-Winter","Multiplicative Holt-Winter", "ARIMA", "Auto ARIMA","ETS", "SARIMA"),
-  RMSE = c(additive_rmse, multiplicative_rmse,arima_rmse,autoarima_rmse,ets_rmse,sarima_rmse)
+  Model = c("Addditve Holt-Winter","Multiplicative Holt-Winter", "SARIMA", "Auto ARIMA","ETS"),
+  RMSE = c(additive_rmse, multiplicative_rmse,sarima_rmse,autoarima_rmse,ets_rmse)
 )
 
 # Print the RMSE comparison
@@ -354,27 +321,25 @@ pdf("forecast_comparison_plot.pdf", width = 10, height = 6)  # Save the plot to 
 # Create a vector for ylim
 y_limits <- c(
   min(c(
-    forecast_ARIMA$lower,
+    forecast_SARIMA$lower,
     forecast_AutoArima$lower,
     forecast_ETS$lower,
-    forecast_Sarima$lower,
     additive_forecast$lower,
     multiplicative_forecast$lower,
     test
   )),
   max(c(
-    forecast_ARIMA$upper,
+    forecast_SARIMA$upper,
     forecast_AutoArima$upper,
     forecast_ETS$upper,
-    forecast_Sarima$upper,
     additive_forecast$upper,
     multiplicative_forecast$upper,
     test
   ))
 )
 plot(
-  forecast_ARIMA,
-  main = "Forecast: ARIMA vs. Auto_ARIMA vs. ETS vs. SARIMA vs. Holt",
+  forecast_SARIMA,
+  main = "Forecast: SARIMA vs. Auto_ARIMA vs. ETS vs. Holt",
   xlab = "Date",
   ylab = "Average People Employed",
   col = "blue",
@@ -382,7 +347,7 @@ plot(
 )
 lines(forecast_AutoArima$mean, col = "red")
 lines(forecast_ETS$mean, col = "green")
-lines(forecast_Sarima$mean, col = "yellow")  # Sarima Forecast
+lines(forecast_SARIMA$mean, col = "yellow")  # Sarima Forecast
 lines(additive_forecast$mean, col = "brown")  # Additive Forecast model
 lines(multiplicative_forecast$mean, col = "orange")  # Multiplicative Forecast model
 
@@ -395,9 +360,8 @@ dev.off()  # Close the PDF device
 # ----------------- Step 8(a) : Form Equation for the Best Model -----------------
 
 # ----------------- Step 8(b) : Estimate the model's coefficients -----------------
-coeftest(arima_model)
+coeftest(sarima_model)
 coeftest(autoarima_model)
-coeftest(fitSarima)
 ets_model                    # ETS (best model)
 additive_model 
 multiplicative_model
