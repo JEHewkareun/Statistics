@@ -149,8 +149,8 @@ summary(arima_model)
 accuracy(arima_model)
 checkresiduals(arima_model)
 
-# Generate forecasts for the next 3 years (36 months)
-forecast_ARIMA <- forecast(arima_model, h = 36)
+# Generate forecasts for the next 2.5 years (31 months)
+forecast_ARIMA <- forecast(arima_model, h = 31)
 
 # Plot the graph for the forecasts
 plot(forecast_ARIMA, main = "ARIMA Forecast", xlab = "Date", ylab = "People Employed")
@@ -162,8 +162,8 @@ summary(autoarima_model)
 accuracy(autoarima_model)
 checkresiduals(autoarima_model)
 
-# Generate forecasts for the next 3 years (36 months)
-forecast_AutoArima <- forecast(autoarima_model, h = 36)
+# Generate forecasts for the next 2.5 years (31 months)
+forecast_AutoArima <- forecast(autoarima_model, h = 31)
 
 # Plot the graph for the forecasts
 plot(forecast_AutoArima, main = "Auto ARIMA Forecast", xlab = "Date", ylab = "People Employed")
@@ -185,7 +185,7 @@ checkresiduals(fitSarima, lag = 24)
 # check 
 summary(fitSarima)
 
-forecast_Sarima <- forecast(fitSarima, h = 36)
+forecast_Sarima <- forecast(fitSarima, h = 31)
 
 # Plot the graph for the forecasts
 pdf("sarima_forecast_plot.pdf", width = 10, height = 6)  # Save the plot to a PDF file
@@ -237,7 +237,7 @@ additive_model <- HoltWinters(train, alpha=0.4, beta=0.9, gamma=0.5,seasonal = "
 additive_model 
 
 # Forecast the time series for the testing period
-additive_forecast <- forecast(additive_model, h = 12)
+additive_forecast <- forecast(additive_model, h = 31)
 
 # Print the forecast
 print(additive_forecast)
@@ -252,7 +252,7 @@ multiplicative_model <- HoltWinters(train, alpha=0.4, beta=0.9, gamma=0.5, seaso
 multiplicative_model
 
 # Forecast the time series for the testing period
-multiplicative_forecast <- forecast(multiplicative_model, h = 12)
+multiplicative_forecast <- forecast(multiplicative_model, h = 31)
 
 # Print the forecast
 print(multiplicative_forecast)
@@ -272,7 +272,7 @@ cbind('Residuals' = residuals(ets_model),
       'Forecast errors' = residuals(ets_model,type='response')) %>%
   autoplot(facet=TRUE) + xlab("Year") + ylab("")
 
-forecast_ETS <- forecast(ets_model, h = 36)
+forecast_ETS <- forecast(ets_model, h = 31)
 print(forecast_ETS)
 plot(forecast_ETS)
 
@@ -304,31 +304,6 @@ print(accuracy(additive_forecast, test))
 
 print("Accuracy of Multiplicative Model")
 print(accuracy(multiplicative_forecast, test))
-
-## Compute AIC & BIC
-arima_aic <- AIC(arima_model)
-arima_bic <- BIC(arima_model)
-
-autoarima_aic <- AIC(autoarima_model)
-autoarima_bic <- BIC(autoarima_model)
-
-ets_aic <- AIC(ets_model)
-ets_bic <- BIC(ets_model)
-
-sarima_aic <- AIC(fitSarima)
-sarima_bic <- BIC(fitSarima)
-
-
-# Lower AIC and BIC values indicate better model fit.
-# Create a data frame to display the AIC and BIC values for each model
-aicbic_comparison <- data.frame(
-  Model = c("ARIMA", "Auto ARIMA", "ETS", "SARIMA"),
-  AIC = c(arima_aic, autoarima_aic, ets_aic, sarima_aic),
-  BIC = c(arima_bic,autoarima_bic, ets_bic, sarima_bic)
-)
-
-# Print the model comparison
-print(aicbic_comparison)
 
 ## Compute SE
 # Extract the residuals (forecast errors) from the forecast object
